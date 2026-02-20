@@ -4,7 +4,7 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "BUIENRADAR_API": "https://data.buienradar.nl/2.0/feed/json",
-    "PEXELS_API_KEY": "j0knpmrJE9dTofUtd7ikBO5kPIMWNPLvNiLY6vFSLur4BrVdGwwrIIeR",
+    "PEXELS_API_KEY": "",
     "OUTPUT_BLOB_CONTAINER": "weather-images",
     "CACHE_BLOB_CONTAINER": "background-cache"
   }
