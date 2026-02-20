@@ -1,26 +1,42 @@
 # Weather Image Generator (Azure Functions)
 
-Implements the 2025 assignment requirements:
+An asynchronous, scalable serverless application built with .NET 8 and Azure Functions. This API generates dynamic weather images by fetching current weather data for 50 stations in the Netherlands and overlaying it onto background images.
 
-- `POST /api/jobs/start` starts a job and enqueues it (`image-start`)
-- `image-start` fan-outs into 50 station tasks (`image-process`)
-- `image-process` fetches a public background image, writes station + weather info on it, and stores the result in Blob Storage
-- `GET /api/jobs/{jobId}/status` reads `jobs/{jobId}/status.json`
-- `GET /api/jobs/{jobId}/images` lists image URLs (SAS by default, or direct URLs when `PUBLIC_BLOB_ACCESS=true`)
+## 🚀 Features
 
-## Configuration (App Settings)
+* **Asynchronous Processing:** Uses an HTTP API to accept requests and immediately returns a Job ID while processing happens in the background.
+* **Fan-Out Architecture:** Employs multiple Azure Storage Queues to fan out tasks, ensuring scalable and parallel processing for 50 weather stations.
+* **External API Integration:** * [Buienradar API](https://data.buienradar.nl/2.0/feed/json) for live weather data.
+  * Pexels API for dynamic, high-quality background images.
+* **Infrastructure as Code (IaC):** Fully automated infrastructure provisioning using Azure Bicep.
+* **Automated Deployment:** Includes a PowerShell script (`deploy.ps1`) to compile code, build infrastructure, and publish the Function App via the Azure CLI.
 
-- `BUIENRADAR_API` (default: Buienradar feed)
-- `PEXELS_API_KEY` (required to fetch images)
-- `OUTPUT_BLOB_CONTAINER` (default: `weather-images`)
-- `CACHE_BLOB_CONTAINER` (default: `background-cache`)
-- `PUBLIC_BLOB_ACCESS` (`true` to return direct blob URLs, `false` to return SAS URLs when possible)
+## 🏗️ Architecture Workflow
 
-## Local run
+1. **POST `/api/jobs/start`:** User requests a new image generation job.
+2. **Queue (`image-start`):** The HTTP trigger drops a message into the start queue and returns the Job ID to the user.
+3. **Fan-Out Worker:** A QueueTrigger picks up the job, fetches the 50 weather stations from Buienradar, and creates 50 separate messages in the next queue.
+4. **Processing Worker (`image-process`):** Multiple QueueTriggers run in parallel to grab background images, draw the weather data onto the images, and upload them to Azure Blob Storage.
+5. **GET Endpoints:** Users can poll the status endpoint and eventually fetch the secure SAS links to the generated images.
 
-1. Put your Pexels key in `local.settings.json`
-2. Start Azurite (or use a real storage account)
-3. Run:
-   - `func start` (or via VS Code)
+## 📋 Prerequisites
 
-Use `api.http` as the API documentation / test client.
+To run or deploy this project, you need:
+* [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+* [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+* PowerShell 7+
+* A valid [Pexels API Key](https://www.pexels.com/api/)
+
+## 🛠️ Local Development Setup
+
+1. Clone the repository.
+2. Create a `local.settings.json` file in the root of the project with the following structure (ensure this file is ignored in `.gitignore`):
+   ```json
+   {
+     "IsEncrypted": false,
+     "Values": {
+       "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+       "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+       "PEXELS_API_KEY": "your_api_key_here"
+     }
+   }
