@@ -44,9 +44,9 @@ To run or deploy this project, you need:
  ## talking to the azure api
     if you wanna test the api that i pushed to azure use these links
     in your windows powershell do this and form there you will get your jobID.
-    ```powershell
+  ```powershell
     Invoke-RestMethod -Uri "https://func-weatherimg-2026-4633.azurewebsites.net/api/jobs/start" -Method Post -Body "{`"requestedBy`": `"azure-test`"}" -ContentType "application/json"
-    ```
+  ```
 
     https://func-weatherimg-2026-4633.azurewebsites.net/api/jobs/{jobID}/images
     https://func-weatherimg-2026-4633.azurewebsites.net/api/jobs/{jobID}/status
