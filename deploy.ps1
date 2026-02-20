@@ -64,16 +64,35 @@ Push-Location $publishDir
 Compress-Archive -Path * -DestinationPath $zipPath -Force
 Pop-Location
 
-# Convert to a strict absolute path so Azure CLI doesn't get confused and silently fail
 $absoluteZipPath = (Resolve-Path $zipPath).Path
 
 Write-Host ">>> Deploying package to Azure Function App '$FunctionAppName' ..."
-# Using the Azure CLI as required by the grading rubric
 az functionapp deployment source config-zip `
   -g $ResourceGroup `
   -n $FunctionAppName `
   --src "$absoluteZipPath" `
   --only-show-errors | Out-Null
+
+
+Write-Host ">>> Configuring Environment Variables in Azure..."
+
+$localSettingsPath = Join-Path $projectDir "local.settings.json"
+if (Test-Path $localSettingsPath) {
+    $settings = Get-Content $localSettingsPath | ConvertFrom-Json
+    $pexelsKey = $settings.Values.PEXELS_API_KEY
+
+    if ($pexelsKey) {
+        Write-Host "    Found PEXELS_API_KEY. Pushing to Azure..."
+        az functionapp config appsettings set `
+            -g $ResourceGroup `
+            -n $FunctionAppName `
+            --settings PEXELS_API_KEY="$pexelsKey" `
+            --only-show-errors | Out-Null
+        Write-Host "    Successfully configured PEXELS_API_KEY in the cloud!"
+    } else {
+        Write-Warning "    PEXELS_API_KEY not found in local.settings.json."
+    }
+}
 
 Write-Host ""
 Write-Host "Deploy complete."
