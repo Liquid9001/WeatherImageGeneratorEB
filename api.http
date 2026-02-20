@@ -1,0 +1,17 @@
+@host = http://localhost:7071
+# After deploy set @host = https://<your-function-app>.azurewebsites.net
+
+### Start a new job (fan-out to 50 stations)
+POST {{host}}/api/jobs/start
+Content-Type: application/json
+
+{
+  "requestedBy": "local-test"
+}
+
+### Get job status
+# Replace <jobId> with the jobId from the start response
+GET {{host}}/api/jobs/<jobId>/status
+
+### Get finished image URLs (SAS URLs by default)
+GET {{host}}/api/jobs/<jobId>/images
